@@ -1,5 +1,9 @@
 from pathlib import Path
 
+root_dir = str(Path(__file__).cwd())
+plugin_dir = root_dir + "\\plugins"
+results_dir = root_dir + "\\results"
+
 user_agents = [
     "Mozilla/5.0 (Linux; Android 8.0.0; SM-G960F Build/R16NW) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.84 Mobile Safari/537.36",
     "Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1",
@@ -14,35 +18,4 @@ user_agents = [
     "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)",
     "Mozilla/5.0 (compatible; Yahoo! Slurp; http://help.yahoo.com/help/us/ysearch/slurp)"
 ]
-
-root_dir = str(Path(__file__).cwd())
-plugin_dir = root_dir + "\\plugins"
-results_dir = root_dir + "\\results"
-
-default_plugin_contents = """from core import Base, Scraper
-
-hostname = "https://novelfull.com/"
-search_url = hostname + "search?keyword="
-
-class Novelfull(Base):
-    def __init__(self):
-        self.scraper = Scraper(hostname)
-
-    def search(self, keyword):
-        soup = self.scraper.cookSoup(search_url + keyword.lower().replace(" ", "+"))
-
-        try: 
-            search_results = soup.find("div", {"class": "list list-truyen col-xs-12"}).find_all("div", {"class": "row"})
-            resultsList = []
-            for i in search_results:
-                parent_tag = i.find("div", {"class": "col-xs-7"}).find("h3", {"class": "truyen-title"})
-                resultsList.append({
-                    "title": parent_tag.a["title"],
-                    "link": hostname[:-1] + parent_tag.a["href"]
-                })
-            return resultsList
-        
-        except AttributeError:
-            return None
-"""
 

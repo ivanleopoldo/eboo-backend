@@ -1,14 +1,40 @@
-# __Nove API with plugin support__
+# __eboo with plugin support__
 
 
 A Flask Restful API that scrapes data from multiple websites in the form of plugins. 
 
-<hr>
+## Project Tree
+```bash
+noveapi/
+├── app.py
+├── core/
+│   ├── __init__.py
+│   ├── assets/
+│   │   ├── __init__.py
+│   │   ├── constants.py
+│   │   ├── models.py
+│   │   ├── plug_base_class.py
+│   │   └── scraper_obj.py
+│   └── utils/
+│       ├── __init__.py
+│       ├── bookbinder.py
+│       ├── handlers.py
+│       └── load_plugins.py
+├── dev/
+│   └── dirtree.py
+├── LICENSE
+├── plugins/
+│   └── default.scraper.py
+├── plugins.db.json
+├── README.md
+├── requirements.txt
+├── results/
+├── settings.json
+└── tests/
+```
 
 ## __Usage__
 Run Flask App and type ```localhost:81``` in your browser. Input novel title and email. 
-
-<hr>
 
 ## __TODO__
 - **Features**
@@ -27,3 +53,6 @@ Run Flask App and type ```localhost:81``` in your browser. Input novel title and
   - [ ] Add docstrings
   - [ ] readme documentation
   - [ ] automatic documentation using sphyinx
+
+- **Ideas**
+  - [ ] create fastapi email service hosted on heroku

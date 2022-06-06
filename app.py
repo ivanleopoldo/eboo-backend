@@ -1,11 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from core.utils import load_plugins
-from core.utils import PluginHandler
-from core.utils import start_download
-from core.assets import Base
-from core.assets import plugin_dir
-from pathlib import Path
+from core.utils import load_plugins, start_download, PluginHandler
+from core.assets import Base, plugin_dir, models
 import uvicorn
 import os
 
@@ -45,11 +41,11 @@ def index():
     return response
 
 @app.post("/search")
-def search(keywords: str):
+def search(keywords: models.Keywords):
     try:
         results = []
         for plug in Base.plugins:
-            search_results = plug().search(keywords)
+            search_results = plug().search(keywords.keywords)
             results.append({
                 "plugin": plug.__name__,
                 "results": search_results
@@ -61,9 +57,9 @@ def search(keywords: str):
     return response
 
 @app.post("/download/novel")
-def download(keywords: str):
+def download(keywords: models.Keywords):
     try:
-        start_download(keywords)
+        start_download(keywords.keywords)
         response["response"] = "success"
     except:
         response["response"] = "failed"
@@ -80,8 +76,8 @@ def settings():
     return response
 
 @app.post("/settings")
-def settings(string: str):
-    response["response"] = string
+def settings(arg: models.Settings):
+    response["response"] = arg
     return response
 
 # plugin manager routes
@@ -96,20 +92,23 @@ def downloadable_plugins():
 
 @app.get("/plugins/downloaded")
 def downloaded_plugins():
-    pass
+    response["response"] = [plug.__module__ for plug in Base.plugins if not plug.__module__.startswith("default.")]
+    return response
 
 @app.get("/plugins/default")
 def default_plugins():
-    pass
+    response["response"] = [plug.__module__ for plug in Base.plugins if plug.__module__.startswith("default.")]
+    return response
 
 @app.get("/plugins/local")
 def local_plugins():
-    return {"plugins": [plug for plug in Base.plugins]}
+    response["response"] = [plug.__module__ for plug in Base.plugins]
+    return response
 
 @app.post("/download/plugin")
-def download_plugin(plugin: str):
+def download_plugin(plugin: models.Plugin):
     try:
-        plug_handle.download_plugin(plugin)
+        plug_handle.download_plugin(plugin.plugin_name)
         response["response"] = "success"
     except:
         response["response"] = "failed"
@@ -117,9 +116,9 @@ def download_plugin(plugin: str):
     return response
 
 @app.post("/delete/plugin")
-def delete_plugin(plugin: str):
+def delete_plugin(plugin: models.Plugin):
     try:
-        plug_handle.delete_plugin(plugin)
+        plug_handle.delete_plugin(plugin.plugin_name)
         response["response"] = "success"
     except:
         response["response"] = "failed"
@@ -132,7 +131,6 @@ def path():
     return {
         "path": os.getcwd(),
         "dir": os.path.dirname(__file__),
-        "abs": str(Path(__file__))
     }
 
 @app.get("/github/plugins")

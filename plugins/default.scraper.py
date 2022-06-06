@@ -8,7 +8,7 @@ class Novelfull(Base):
         self.scraper = Scraper(hostname)
 
     def search(self, keyword):
-        soup = self.scraper.cook_soup(search_url + keyword.lower().replace(" ", "+"))
+        soup = self.scraper.cookSoup(search_url + keyword.lower().replace(" ", "+"))
 
         try: 
             search_results = soup.find("div", {"class": "list list-truyen col-xs-12"}).find_all("div", {"class": "row"})
