@@ -1,13 +1,12 @@
-from .load_plugins import *
-from .bookbinder import *
-from .handlers import *
-import os
+import sys
 
-default_plugin_contents = """from core.assets import Scraper, Base
+from bs4 import BeautifulSoup
+sys.path.append(".\\")
+
+from core.assets import Scraper, Base
 from core.assets import results_dir
 from core.utils import create_book, add_chapter
 from concurrent.futures import ProcessPoolExecutor
-from bs4 import BeautifulSoup
 from math import ceil
 import os
 
@@ -118,15 +117,4 @@ class Novelfull(Base):
         if os.path.isdir(folder_path) == False:  
             os.mkdir(folder_path)
         return folder_path
-"""
 
-def create_default_plugin(plugin_dir):
-    with open(f"{plugin_dir}\\default.scraper.py", "w+", encoding="utf-8") as default_file:
-        default_file.write(default_plugin_contents)
-
-if os.path.isdir(plugin_dir) == False:
-    os.mkdir(plugin_dir)
-    create_default_plugin(plugin_dir)
-
-if os.path.isdir(results_dir) == False:
-    os.mkdir(results_dir)

@@ -1,7 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from core.utils import load_plugins, start_download, PluginHandler
+from core.utils import load_plugins, PluginHandler
 from core.assets import Base, plugin_dir, models
+import asyncio
 import uvicorn
 import os
 
@@ -34,6 +35,10 @@ response = dict({
         "response": ""
     })
 
+# functions
+def differentiate(res):
+    return [plug for plug in Base.plugins if plug.__module__ == res][0]
+
 # main routes
 @app.get("/")
 def index():
@@ -47,7 +52,7 @@ def search(keywords: models.Keywords):
         for plug in Base.plugins:
             search_results = plug().search(keywords.keywords)
             results.append({
-                "plugin": plug.__name__,
+                "plugin": plug.__module__,
                 "results": search_results
             })
         response["response"] = results
@@ -56,28 +61,21 @@ def search(keywords: models.Keywords):
     
     return response
 
-@app.post("/download/novel")
-def download(keywords: models.Keywords):
-    try:
-        start_download(keywords.keywords)
-        response["response"] = "success"
-    except:
-        response["response"] = "failed"
-    
-    return response
+@app.websocket("/download/novel")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    res = await websocket.receive_text()
+    plugin = differentiate(res["plugin"])
 
-@app.post("/email/novel")
-def email_novel():
-    pass
+    for i in plugin.make_book(res["link"]):
+        await asyncio.sleep(0.2)
+        await websocket.send_json({"response": i, "type": type(i)})
 
-@app.get("/settings")
-def settings():
-    response["response"] = "success"
-    return response
+    await websocket.close()
 
-@app.post("/settings")
-def settings(arg: models.Settings):
-    response["response"] = arg
+@app.get("/plugins")
+def local_plugins():
+    response["response"] = [plug.__module__ for plug in Base.plugins]
     return response
 
 # plugin manager routes
@@ -98,11 +96,6 @@ def downloaded_plugins():
 @app.get("/plugins/default")
 def default_plugins():
     response["response"] = [plug.__module__ for plug in Base.plugins if plug.__module__.startswith("default.")]
-    return response
-
-@app.get("/plugins/local")
-def local_plugins():
-    response["response"] = [plug.__module__ for plug in Base.plugins]
     return response
 
 @app.post("/download/plugin")

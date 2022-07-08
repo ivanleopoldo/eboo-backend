@@ -30,7 +30,7 @@ def add_chapter(title, para):
     chapterList.append(c)
     book.spine.append(c)
 
-def make_intro_page(title: str, authors: list, url: str, coverimg=None):
+def make_intro_page(title: str, authors: list, url: str, coverimg):
     if len(authors) > 1:
         authors = ",".join(i for i in authors)
     elif len(authors) == 1:
@@ -71,11 +71,10 @@ def make_intro_page(title: str, authors: list, url: str, coverimg=None):
     intro_html += """
     <div>
         <br>
-        <b>Source:</b> <a href="%s">%s</a><br>
-        <i>Scraped by <b>Nove</b></i>
+        <a href="%s">source</a><br>
+        <i>Scraped by <b>eboo</b></i>
     </div>""" % (
-        url,
-        "novelfull",
+        url
     )
 
     intro_html += "</div>"
@@ -84,12 +83,16 @@ def make_intro_page(title: str, authors: list, url: str, coverimg=None):
         uid="intro", file_name="intro.xhtml", title="Intro", content=intro_html
     )
 
-def create_book(title: str, authors: list, path: str, img: str, url: str):
+def create_book(title: str, source_url: str, authors: list=[], img=None):
     book.add_item(epub.EpubNcx())
     book.add_item(epub.EpubNav())
 
     book.set_title(title)
-    # book.set_cover("cover-img.jpg", img, create_page=False)
+    
+    intro_page = make_intro_page(title, authors, source_url, img)
+
+    if img != None:
+        book.set_cover("cover-img.jpg", img, create_page=False)
 
     splitter = [
         chapterList[i: i + no_per_volume]
@@ -111,22 +114,13 @@ def create_book(title: str, authors: list, path: str, img: str, url: str):
     elif len(authors) <= 1:
         book.add_author(authors[0])
 
-    intro_page = make_intro_page(title, authors, url, img)
-
     book.add_item(intro_page)
 
     book.toc = tuple(toc)
     book.spine = [intro_page, "nav"] + chapterList
 
-    epub_path = path + "\\" + title + ".epub"
+    epub_path = f"{results_dir}\\{title}\\{title}.epub"
     epub.write_epub(epub_path, book)
 
     return epub_path
 
-def start_download(title: str, url: str = None):
-    add_chapter("test", "hello")
-    add_chapter("test1", "hello1")
-    add_chapter("test2", "hello2")
-    add_chapter("test3", "hello3")
-    add_chapter("test4", "hello4")
-    create_book(title, ["me"], results_dir, None, "youtube.com")
